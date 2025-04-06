@@ -36,6 +36,37 @@ int LEFT_PRESSED_ANGLE = 30;
 int PRESS_DELAY = 200;
 int STANDARD_DELAY = 3000;
 
+// Function to validate the API key
+bool isValidApiKey() {
+  // Check if API key is provided as a URL parameter
+  if (server.hasArg("key")) {
+    if (server.arg("key") == API_KEY) {
+      return true;
+    }
+  }
+  
+  // Check if API key is provided in the Authorization header
+  if (server.hasHeader("Authorization")) {
+    String authHeader = server.header("Authorization");
+    // Check if it starts with "Bearer " and then matches our API key
+    if (authHeader.startsWith("Bearer ") && authHeader.substring(7) == API_KEY) {
+      return true;
+    }
+    // Also check for direct API key in the header
+    if (authHeader == API_KEY) {
+      return true;
+    }
+  }
+
+  // If no valid API key found
+  return false;
+}
+
+// Handle unauthorized access
+void handleUnauthorized() {
+  server.send(401, "text/plain", "Unauthorized: Invalid or missing API key");
+}
+
 void openFirstDoor() {
   Serial.println("openFirstDoor");
   // starting state
@@ -137,16 +168,34 @@ void setup(void) {
   });
 
   server.on("/openFirstDoor", []() {
+    // Check if the request has a valid API key
+    if (!isValidApiKey()) {
+      handleUnauthorized();
+      return;
+    }
+    
     server.send(200, "text/plain", "Wait ~10 seconds for the first door to open");
     openFirstDoor();
   });
 
   server.on("/openSecondDoor", []() {
+    // Check if the request has a valid API key
+    if (!isValidApiKey()) {
+      handleUnauthorized();
+      return;
+    }
+    
     server.send(200, "text/plain", "Wait ~10 seconds for the second door to open");
     openSecondDoor();
   });
 
   server.on("/openBothDoors", []() {
+    // Check if the request has a valid API key
+    if (!isValidApiKey()) {
+      handleUnauthorized();
+      return;
+    }
+    
     server.send(200, "text/plain", "Wait ~20 seconds for both doors to open");
     openFirstDoor();
     delay(STANDARD_DELAY);
