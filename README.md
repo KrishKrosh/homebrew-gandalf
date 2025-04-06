@@ -1,4 +1,13 @@
 # Homebrew Gandolf
+This is the code to handle the automatic opening of my main apartment door through the internet as opposed to having to the intercom and press a bunch of buttons myself.
+
+It works by two servo motors doing the right combination of button presses on the Aiphone GT-1M3-L/GT-1M3.
+
+I call it Gandolf.
+
+## Features
+- OTA updates
+- Web server to remotely activate stuff
 
 ## Environment Configuration
 
