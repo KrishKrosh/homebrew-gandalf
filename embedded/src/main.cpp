@@ -5,14 +5,17 @@
 
 #include <ESP32Servo.h>
 #include <Arduino.h>
+#include "secrets.h" // Include secrets header file
 
 
  
-const char* ssid = "homebrew";
-const char* password = "codebrew@42";
+// Use credentials from secrets.h
+const char* ssid = WIFI_SSID;
+const char* password = WIFI_PASSWORD;
 
-// const char* ssid = "SpectrumSetup-37";
-// const char* password = "epicnest826";
+// Uncomment to use alternative credentials
+// const char* ssid = ALT_WIFI_SSID;
+// const char* password = ALT_WIFI_PASSWORD;
  
 WebServer server(80);
 
@@ -134,23 +137,24 @@ void setup(void) {
   });
 
   server.on("/openFirstDoor", []() {
-    openFirstDoor();
     server.send(200, "text/plain", "Wait ~10 seconds for the first door to open");
+    openFirstDoor();
   });
 
   server.on("/openSecondDoor", []() {
-    openSecondDoor();
     server.send(200, "text/plain", "Wait ~10 seconds for the second door to open");
+    openSecondDoor();
   });
 
   server.on("/openBothDoors", []() {
+    server.send(200, "text/plain", "Wait ~20 seconds for both doors to open");
     openFirstDoor();
     delay(STANDARD_DELAY);
     openSecondDoor();
-    server.send(200, "text/plain", "Wait ~20 seconds for both doors to open");
   });
 
-  ElegantOTA.setAuth("homebrew", "codebrew@42");
+  // Use OTA credentials from secrets.h
+  ElegantOTA.setAuth(OTA_USERNAME, OTA_PASSWORD);
   ElegantOTA.begin(&server);    // Start ElegantOTA
   server.begin();
   Serial.println("HTTP server started");
@@ -160,52 +164,3 @@ void loop(void) {
   server.handleClient();
   ElegantOTA.loop();
 }
-
-/*
-  Example from WiFi > WiFiScan
-  Complete details at https://RandomNerdTutorials.com/esp32-useful-wi-fi-functions-arduino/
-*/
-
-// #include "WiFi.h"
-
-// void setup() {
-//   Serial.begin(115200);
-
-//   // Set WiFi to station mode and disconnect from an AP if it was previously connected
-//   WiFi.mode(WIFI_STA);
-//   WiFi.disconnect();
-//   delay(100);
-
-//   Serial.println("Setup done");
-// }
-
-// void loop() {
-//   Serial.println("scan start");
-
-//   // WiFi.scanNetworks will return the number of networks found
-//   int n = WiFi.scanNetworks();
-//   Serial.println("scan done");
-//   if (n == 0) {
-//       Serial.println("no networks found");
-//   } else {
-//     Serial.print(n);
-//     Serial.println(" networks found");
-//     for (int i = 0; i < n; ++i) {
-//       // Print SSID and RSSI for each network found
-//       Serial.print(i + 1);
-//       Serial.print(": ");
-//       Serial.print(WiFi.SSID(i));
-//       Serial.print(" (");
-//       Serial.print(WiFi.RSSI(i));
-//       Serial.print(")");
-//       Serial.println((WiFi.encryptionType(i) == WIFI_AUTH_OPEN)?" ":"*");
-//       Serial.print(" Ch:");
-//       Serial.println(WiFi.channel(i));
-//       delay(10);
-//     }
-//   }
-//   Serial.println("");
-
-//   // Wait a bit before scanning again
-//   delay(5000);
-// }
