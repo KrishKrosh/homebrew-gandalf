@@ -1,7 +1,8 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <WebServer.h>
-#include <ElegantOTA.h>
+#include <ESPmDNS.h>
+#include <ArduinoOTA.h>
 
 #include <ESP32Servo.h>
 #include <Arduino.h>
@@ -162,9 +163,62 @@ void setup(void) {
   Serial.println(ssid);
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
+
+  // Set up mDNS responder:
+  // - first argument is the domain name, in this case, 'gandalf'
+  // - second argument is the IP address to advertise
+  if (!MDNS.begin("gandalf")) {
+    Serial.println("Error setting up MDNS responder!");
+  } else {
+    Serial.println("mDNS responder started");
+    // Add service to MDNS-SD
+    MDNS.addService("http", "tcp", 80);
+  }
+
+  // ArduinoOTA setup
+  // Port defaults to 3232
+  ArduinoOTA.setPort(3232);
+  
+  // Hostname defaults to esp3232-[MAC]
+  ArduinoOTA.setHostname("gandalf");
+  
+  // Set authentication password
+  ArduinoOTA.setPassword(OTA_PASSWORD);
+  
+  // OTA callbacks
+  ArduinoOTA.onStart([]() {
+    String type;
+    if (ArduinoOTA.getCommand() == U_FLASH)
+      type = "sketch";
+    else // U_SPIFFS
+      type = "filesystem";
+    
+    // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+    Serial.println("Start updating " + type);
+  });
+  
+  ArduinoOTA.onEnd([]() {
+    Serial.println("\nEnd");
+  });
+  
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+  });
+  
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+  });
+  
+  ArduinoOTA.begin();
+  Serial.println("OTA service started");
  
   server.on("/", []() {
-    server.send(200, "text/plain", "Hi! This is ElegantOTA Demo.");
+    server.send(200, "text/plain", "Hi! This is Gandalf Door Controller.");
   });
 
   server.on("/openFirstDoor", []() {
@@ -202,14 +256,11 @@ void setup(void) {
     openSecondDoor();
   });
 
-  // Use OTA credentials from secrets.h
-  ElegantOTA.setAuth(OTA_USERNAME, OTA_PASSWORD);
-  ElegantOTA.begin(&server);    // Start ElegantOTA
   server.begin();
   Serial.println("HTTP server started");
 }
  
 void loop(void) {
+  ArduinoOTA.handle();
   server.handleClient();
-  ElegantOTA.loop();
 }

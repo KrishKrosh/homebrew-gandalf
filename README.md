@@ -1,14 +1,15 @@
-# Homebrew Gandolf
+# Homebrew Gandalf
 This is the code to handle the automatic opening of my main apartment door through the internet as opposed to having to the intercom and press a bunch of buttons myself.
 
 It works by two servo motors doing the right combination of button presses on the Aiphone GT-1M3-L/GT-1M3.
 
-I call it Gandolf.
+I call it Gandalf.
 
 ## Features
-- OTA updates
+- ArduinoOTA updates over the network
 - Web server to remotely activate stuff
 - Secured API endpoints with API key authentication
+- Secure credential management with secrets.h
 
 ## Environment Configuration
 
@@ -25,8 +26,7 @@ This project uses a secrets.h file to store sensitive information like WiFi cred
    const char* WIFI_SSID = "your_wifi_ssid";
    const char* WIFI_PASSWORD = "your_wifi_password";
    
-   // OTA authentication
-   const char* OTA_USERNAME = "your_ota_username";
+   // ArduinoOTA authentication
    const char* OTA_PASSWORD = "your_ota_password";
    
    // API authentication
@@ -34,6 +34,85 @@ This project uses a secrets.h file to store sensitive information like WiFi cred
    ```
 
 3. The secrets.h file is ignored by git (added to .gitignore) to prevent accidentally committing sensitive information.
+
+## PlatformIO Setup for OTA Updates
+
+To use ArduinoOTA with PlatformIO in VSCode, follow these steps:
+
+### Initial Setup
+
+1. Make sure you have PlatformIO extension installed in VSCode
+2. The project's `platformio.ini` is configured to securely handle OTA:
+
+```ini
+[env:esp32dev]
+platform = espressif32
+board = esp32dev
+framework = arduino
+monitor_speed = 115200
+
+; Import custom Python script to extract OTA password from secrets.h
+extra_scripts = extract_secrets.py
+
+; For initial upload via serial
+upload_protocol = esptool
+upload_port = /dev/cu.SLAB_USBtoUART  ; Adjust this to your serial port
+
+; For OTA uploads (uncomment after initial upload)
+; upload_protocol = espota
+; upload_port = gandalf.local
+; upload_flags = ${env:esp32dev.ota_flags}  ; Password is extracted from secrets.h
+```
+
+### Security Feature
+
+This project uses a special approach to avoid storing passwords in platformio.ini:
+
+1. The OTA password is stored only in your `secrets.h` file
+2. A Python script (`extract_secrets.py`) reads the password at build time
+3. PlatformIO uses this password for OTA updates without storing it in any committed files
+4. This means your password is never stored in plaintext in version control
+
+### First Upload
+
+For the first upload (to install ArduinoOTA code), you must use the serial connection:
+
+1. Connect your ESP32 via USB
+2. Click the PlatformIO upload button or run:
+   ```
+   pio run -t upload
+   ```
+
+### Subsequent OTA Updates
+
+After the initial upload, you can deploy updates wirelessly:
+
+1. Ensure your computer is on the same network as the ESP32
+2. Uncomment the OTA upload section in platformio.ini and comment out the serial section
+3. Update the project code as needed
+4. Click the PlatformIO upload button - it will now use OTA with the password from secrets.h
+5. You can also use the command line:
+   ```
+   pio run -t upload
+   ```
+
+### Troubleshooting OTA Updates
+
+If you're having issues with OTA uploads:
+
+1. Verify the ESP32 is powered and connected to your network
+2. Check that the IP address in platformio.ini matches the device's current IP
+3. If using mDNS (hostname), make sure your computer supports mDNS (Windows may require Bonjour)
+4. Try pinging the device to verify connectivity:
+   ```
+   ping gandalf.local
+   ```
+   or
+   ```
+   ping 192.168.1.100
+   ```
+5. The ESP32 must have enough memory available for the OTA update
+6. The ESP32 security settings might block OTA updates if the password is incorrect
 
 ## API Documentation
 
