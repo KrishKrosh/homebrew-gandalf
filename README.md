@@ -10,6 +10,27 @@ I call it Gandalf.
 - Web server to remotely activate stuff
 - Secured API endpoints with API key authentication
 - Secure credential management with secrets.h
+- Modular code organization with separate controller classes
+- Physical button support - press the ESP32 flash button to open both doors
+
+## Project Structure
+
+The codebase is organized into modular components:
+
+- `main.cpp` - Main application entry point, handles WiFi, OTA, and HTTP server
+- `secrets.h` - Contains sensitive configuration (not committed to version control)
+- `ServoController.h` - Handles all servo motor operations for door control
+- `ButtonHandler.h` - Manages physical button interactions with debouncing
+- `extract_secrets.py` - Helper script for secure OTA password handling
+
+## Physical Controls
+
+In addition to the API endpoints, you can also control the door using physical inputs:
+
+- **Flash Button**: Press the built-in flash button on the ESP32 board to open both doors
+  - This is the button labeled "BOOT" or "FLASH" on most ESP32 development boards
+  - The button is connected to GPIO0
+  - Includes software debouncing to prevent accidental double-triggering
 
 ## Environment Configuration
 

@@ -4,11 +4,13 @@
 #include <ESPmDNS.h>
 #include <ArduinoOTA.h>
 
-#include <ESP32Servo.h>
 #include <Arduino.h>
 #include "secrets.h" // Include secrets header file
+#include "ServoController.h" // Include our Servo Controller
+#include "ButtonHandler.h" // Include our Button Handler
 
-
+// Flash button pin (typically GPIO0 on most ESP32 dev boards)
+#define FLASH_BUTTON_PIN 0
  
 // Use credentials from secrets.h
 const char* ssid = WIFI_SSID;
@@ -20,22 +22,11 @@ const char* password = WIFI_PASSWORD;
  
 WebServer server(80);
 
-Servo rightServo;  // create servo object to control a servo
-                // 16 servo objects can be created on the ESP32
-Servo leftServo;
+// Create a ServoController instance
+ServoController servoCtrl;
 
-int pos = 0;    // variable to store the servo position
-// Recommended PWM GPIO pins on the ESP32 include 2,4,12-19,21-23,25-27,32-33 
-int servoPin1 = 32;
-int servoPin2 = 33;
-
-int RIGHT_DEFAULT_ANGLE = 45;
-int RIGHT_PRESSED_ANGLE = 65;
-int LEFT_DEFAULT_ANGLE = 45;
-int LEFT_PRESSED_ANGLE = 30;
-
-int PRESS_DELAY = 200;
-int STANDARD_DELAY = 3000;
+// Create a ButtonHandler instance for the flash button
+ButtonHandler flashButton(FLASH_BUTTON_PIN);
 
 // Function to validate the API key
 bool isValidApiKey() {
@@ -68,90 +59,27 @@ void handleUnauthorized() {
   server.send(401, "text/plain", "Unauthorized: Invalid or missing API key");
 }
 
-void openFirstDoor() {
-  Serial.println("openFirstDoor");
-  // starting state
-  rightServo.write(RIGHT_DEFAULT_ANGLE);
-  leftServo.write(LEFT_DEFAULT_ANGLE);
-
-  // left press turns screen on
-  leftServo.write(LEFT_PRESSED_ANGLE);
-  delay(PRESS_DELAY);
-  leftServo.write(LEFT_DEFAULT_ANGLE);
-  delay(STANDARD_DELAY);
-
-  // right press turns on speaker
-  rightServo.write(RIGHT_PRESSED_ANGLE);
-  delay(PRESS_DELAY);
-  rightServo.write(RIGHT_DEFAULT_ANGLE);
-  delay(STANDARD_DELAY);
-
-  // left press opens door
-  leftServo.write(LEFT_PRESSED_ANGLE);
-  delay(PRESS_DELAY);
-  leftServo.write(LEFT_DEFAULT_ANGLE);
-  delay(STANDARD_DELAY);
-
-  // right press closes screen
-  rightServo.write(RIGHT_PRESSED_ANGLE);
-  delay(PRESS_DELAY);
-  rightServo.write(RIGHT_DEFAULT_ANGLE);
-  delay(STANDARD_DELAY);
-  Serial.println("openFirstDoor done");
+// Function to handle button press - will open both doors
+void handleButtonPress() {
+  Serial.println("Button press detected - opening both doors");
+  servoCtrl.openBothDoors();
 }
-
-void openSecondDoor() {
-  Serial.println("openSecondDoor");
-  // starting state
-  leftServo.write(LEFT_DEFAULT_ANGLE);
-  rightServo.write(RIGHT_DEFAULT_ANGLE);
-
-  // left press
-  leftServo.write(LEFT_PRESSED_ANGLE);
-  delay(PRESS_DELAY);
-  leftServo.write(LEFT_DEFAULT_ANGLE);
-  delay(STANDARD_DELAY);
-
-  // left press twice opens screen to second door
-  leftServo.write(LEFT_PRESSED_ANGLE);
-  delay(PRESS_DELAY);
-  leftServo.write(LEFT_DEFAULT_ANGLE);
-  delay(STANDARD_DELAY);
-
-  // right press turns on speaker
-  rightServo.write(RIGHT_PRESSED_ANGLE);
-  delay(PRESS_DELAY);
-  rightServo.write(RIGHT_DEFAULT_ANGLE);
-  delay(STANDARD_DELAY);
-
-  // left press opens second door
-  leftServo.write(LEFT_PRESSED_ANGLE);
-  delay(PRESS_DELAY);
-  leftServo.write(LEFT_DEFAULT_ANGLE);
-  delay(STANDARD_DELAY);
-
-  // right press closes screen
-  rightServo.write(RIGHT_PRESSED_ANGLE);
-  delay(PRESS_DELAY);
-  rightServo.write(RIGHT_DEFAULT_ANGLE);
-  delay(STANDARD_DELAY);
-
-  Serial.println("openSecondDoor done");
-}
-
 
 void setup(void) {
-
-  pinMode(servoPin1, OUTPUT);
-  pinMode(servoPin2, OUTPUT);
-  rightServo.attach(servoPin1); 
-  leftServo.attach(servoPin2);
-
   Serial.begin(115200);
+  Serial.println("Gandalf Door Controller starting...");
+
+  // Initialize the servo controller
+  servoCtrl.begin();
+  
+  // Initialize the button handler and set the callback function
+  flashButton.begin();
+  flashButton.setOnPressCallback(handleButtonPress);
+  Serial.println("Flash button configured to open both doors");
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
-  Serial.println("");
+  Serial.println("Connecting to WiFi...");
  
   // Wait for connection
   while (WiFi.status() != WL_CONNECTED) {
@@ -229,7 +157,7 @@ void setup(void) {
     }
     
     server.send(200, "text/plain", "Wait ~10 seconds for the first door to open");
-    openFirstDoor();
+    servoCtrl.openFirstDoor();
   });
 
   server.on("/openSecondDoor", []() {
@@ -240,7 +168,7 @@ void setup(void) {
     }
     
     server.send(200, "text/plain", "Wait ~10 seconds for the second door to open");
-    openSecondDoor();
+    servoCtrl.openSecondDoor();
   });
 
   server.on("/openBothDoors", []() {
@@ -251,16 +179,18 @@ void setup(void) {
     }
     
     server.send(200, "text/plain", "Wait ~20 seconds for both doors to open");
-    openFirstDoor();
-    delay(STANDARD_DELAY);
-    openSecondDoor();
+    servoCtrl.openBothDoors();
   });
 
   server.begin();
   Serial.println("HTTP server started");
+  Serial.println("Gandalf is ready!");
 }
  
 void loop(void) {
   ArduinoOTA.handle();
   server.handleClient();
+  
+  // Check for button press
+  flashButton.handle();
 }
