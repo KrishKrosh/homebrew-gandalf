@@ -46,7 +46,8 @@ export function createToken(): string {
 export function verifyToken(token: string): TokenPayload | null {
   try {
     return jwt.verify(token, JWT_SECRET) as TokenPayload;
-  } catch (error) {
+  } catch {
+    // Ignore the error details, just return null on any verification failure
     return null;
   }
 }

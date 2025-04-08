@@ -12,6 +12,12 @@ import { openBothDoors, ApiErrorType } from '@/lib/api';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { WifiOff } from 'lucide-react';
 
+// Type definition for error handling
+interface ErrorWithType {
+  message?: string;
+  errorType?: ApiErrorType;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -60,10 +66,10 @@ export default function DashboardPage() {
   // Sound effect for door opening
   const playDoorSound = () => {
     const audio = new Audio('/sounds/door-open.mp3');
-    audio.play().catch(err => console.error('Failed to play sound:', err));
+    audio.play().catch((err: unknown) => console.error('Failed to play sound:', err));
   };
 
-  const handleErrorByType = (error: any) => {
+  const handleErrorByType = (error: ErrorWithType) => {
     let title = 'Connection Error';
     let message = 'Failed to connect to the door system. Please try again later.';
     
@@ -124,9 +130,9 @@ export default function DashboardPage() {
         setShowDoorOpenDialog(true);
         
         // Play sound effect
-        setTimeout(() => {
-          playDoorSound();
-        }, 500);
+        // setTimeout(() => {
+        //   playDoorSound();
+        // }, 500);
         
         // Set to opened after animation completes
         setTimeout(() => {
@@ -136,7 +142,7 @@ export default function DashboardPage() {
         // Handle error with the error dialog
         handleErrorByType(result);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Door open error:', error);
       setErrorDetails({
         visible: true,
