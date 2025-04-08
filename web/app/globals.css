@@ -1,0 +1,187 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+  
+  /* Coffee-inspired color palette */
+  --background: #FAF3E0; /* Light cream background */
+  --foreground: #3C2A21; /* Dark coffee */
+  --card: #FFF8E5; /* Lighter cream for cards */
+  --card-foreground: #3C2A21; /* Dark coffee */
+  --popover: #FFF8E5; /* Lighter cream for popover */
+  --popover-foreground: #3C2A21; /* Dark coffee */
+  
+  --primary: #6F4E37; /* Medium coffee brown */
+  --primary-foreground: #FFFFFF; /* White text on brown */
+  
+  --secondary: #D9BC9A; /* Light coffee/caramel */
+  --secondary-foreground: #3C2A21; /* Dark coffee */
+  
+  --muted: #E6DBC8; /* Very light brown */
+  --muted-foreground: #7F7563; /* Muted brown text */
+  
+  --accent: #A47551; /* Rich caramel color */
+  --accent-foreground: #FFFFFF; /* White text on accent */
+  
+  --destructive: #C93A3A; /* Rich red */
+  --border: #D9BC9A; /* Light coffee/caramel border */
+  --input: #EADAC0; /* Soft cream for inputs */
+  --ring: #A47551; /* Coffee ring stain color */
+  
+  /* Sidebar colors */
+  --sidebar: #876445; /* Darker coffee color */
+  --sidebar-foreground: #FFF8E5; /* Light cream text */
+  --sidebar-primary: #D9BC9A; /* Light coffee/caramel */
+  --sidebar-primary-foreground: #3C2A21; /* Dark coffee */
+  --sidebar-accent: #A47551; /* Rich caramel color */
+  --sidebar-accent-foreground: #FFFFFF; /* White text */
+  --sidebar-border: #5C3D2B; /* Dark coffee border */
+  --sidebar-ring: #D9BC9A; /* Light coffee ring */
+}
+
+.dark {
+  --background: #1C1917; /* Very dark coffee/espresso */
+  --foreground: #F5F5F4; /* Off-white text */
+  --card: #292524; /* Dark mocha color */
+  --card-foreground: #F5F5F4; /* Off-white text */
+  --popover: #292524; /* Dark mocha color */
+  --popover-foreground: #F5F5F4; /* Off-white text */
+  
+  --primary: #A47551; /* Rich caramel color */
+  --primary-foreground: #FFFFFF; /* White text */
+  
+  --secondary: #44403C; /* Dark muted brown */
+  --secondary-foreground: #F5F5F4; /* Off-white text */
+  
+  --muted: #44403C; /* Dark muted brown */
+  --muted-foreground: #A8A29E; /* Muted cream text */
+  
+  --accent: #6F4E37; /* Medium coffee brown */
+  --accent-foreground: #FFFFFF; /* White text */
+  
+  --destructive: #E74C3C; /* Bright red */
+  --border: #44403C; /* Dark muted brown */
+  --input: #44403C; /* Dark muted brown */
+  --ring: #A47551; /* Rich caramel color */
+  
+  /* Sidebar colors */
+  --sidebar: #292524; /* Dark mocha color */
+  --sidebar-foreground: #F5F5F4; /* Off-white text */
+  --sidebar-primary: #A47551; /* Rich caramel color */
+  --sidebar-primary-foreground: #FFFFFF; /* White text */
+  --sidebar-accent: #44403C; /* Dark muted brown */
+  --sidebar-accent-foreground: #F5F5F4; /* Off-white text */
+  --sidebar-border: #1C1917; /* Very dark coffee/espresso */
+  --sidebar-ring: #A47551; /* Rich caramel color */
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom animations */
+@keyframes brew {
+  0% { transform: translateY(0); opacity: 0; }
+  30% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translateY(-20px); opacity: 0; }
+}
+
+.coffee-steam {
+  position: relative;
+}
+
+.coffee-steam::before,
+.coffee-steam::after {
+  content: "";
+  position: absolute;
+  top: -15px;
+  width: 8px;
+  height: 10px;
+  background: #D9BC9A;
+  border-radius: 50%;
+  animation: brew 2s infinite;
+}
+
+.coffee-steam::before {
+  left: 30%;
+  animation-delay: 0.3s;
+}
+
+.coffee-steam::after {
+  left: 70%;
+  animation-delay: 0.7s;
+}
+
+/* Door opening animation */
+@keyframes doorOpen {
+  0% { transform: rotate(0); transform-origin: left; }
+  100% { transform: rotate(80deg); transform-origin: left; }
+}
+
+.door-animation {
+  animation: doorOpen 1.5s ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top: 4px solid var(--accent);
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}

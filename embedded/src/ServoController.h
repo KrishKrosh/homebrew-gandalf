@@ -111,25 +111,24 @@ public:
         leftServo.write(LEFT_PRESSED_ANGLE);
         delay(PRESS_DELAY);
         leftServo.write(LEFT_DEFAULT_ANGLE);
-        delay(STANDARD_DELAY);
+        delay(SHORT_DELAY);
 
         // right press turns on speaker
         rightServo.write(RIGHT_PRESSED_ANGLE);
         delay(PRESS_DELAY);
         rightServo.write(RIGHT_DEFAULT_ANGLE);
-        delay(STANDARD_DELAY);
+        delay(SHORT_DELAY);
 
         // left press opens second door
         leftServo.write(LEFT_PRESSED_ANGLE);
         delay(PRESS_DELAY);
         leftServo.write(LEFT_DEFAULT_ANGLE);
-        delay(STANDARD_DELAY);
+        delay(SHORT_DELAY);
 
         // right press closes screen
         rightServo.write(RIGHT_PRESSED_ANGLE);
         delay(PRESS_DELAY);
         rightServo.write(RIGHT_DEFAULT_ANGLE);
-        delay(STANDARD_DELAY);
 
         Serial.println("openSecondDoor done");
     }

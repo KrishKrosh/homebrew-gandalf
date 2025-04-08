@@ -1,0 +1,23 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Door frame -->
+  <rect x="20" y="15" width="60" height="75" rx="2" fill="#D9BC9A" stroke="#3C2A21" stroke-width="2"/>
+  
+  <!-- Door -->
+  <rect x="25" y="20" width="50" height="65" rx="1" fill="#A47551" stroke="#3C2A21" stroke-width="2"/>
+  
+  <!-- Door handle -->
+  <circle cx="65" cy="50" r="5" fill="#5C3D2B" stroke="#3C2A21" stroke-width="2"/>
+  
+  <!-- Keyhole -->
+  <path d="M65 55V60" stroke="#3C2A21" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="65" cy="52" r="1.5" fill="#3C2A21"/>
+  
+  <!-- Gandalf staff symbol -->
+  <path d="M40 35C40 30 50 25 50 40C50 55 40 50 40 45" stroke="#6F4E37" stroke-width="2.5" stroke-linecap="round"/>
+  
+  <!-- WiFi signal symbol -->
+  <path d="M30 75C35 70 45 70 50 75" stroke="#3C2A21" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M32.5 70C37.5 65 42.5 65 47.5 70" stroke="#3C2A21" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M35 65C40 60 40 60 45 65" stroke="#3C2A21" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="40" cy="77.5" r="2" fill="#3C2A21" stroke="#3C2A21" stroke-width="0.5"/>
+</svg> 

@@ -28,6 +28,21 @@ ServoController servoCtrl;
 // Create a ButtonHandler instance for the flash button
 ButtonHandler flashButton(FLASH_BUTTON_PIN);
 
+// WiFi connection state management
+enum WiFiConnectionState {
+  WIFI_DISCONNECTED,
+  WIFI_CONNECTING,
+  WIFI_CONNECTED,
+  WIFI_FAILED
+};
+
+WiFiConnectionState wifiState = WIFI_DISCONNECTED;
+unsigned long wifiConnectionStartTime = 0;
+unsigned long wifiConnectionAttempt = 0;
+const unsigned long WIFI_CONNECTION_TIMEOUT = 20000; // 20 seconds timeout
+const unsigned long WIFI_RETRY_INTERVAL = 30000;     // Try reconnecting every 30 seconds
+bool otaInitialized = false;
+
 // Function to validate the API key
 bool isValidApiKey() {
   // Check if API key is provided as a URL parameter
@@ -65,36 +80,11 @@ void handleButtonPress() {
   servoCtrl.openBothDoors();
 }
 
-void setup(void) {
-  Serial.begin(115200);
-  Serial.println("Gandalf Door Controller starting...");
+// Initialize OTA and web server
+void setupOTAAndServer() {
+  if (otaInitialized) return;
 
-  // Initialize the servo controller
-  servoCtrl.begin();
-  
-  // Initialize the button handler and set the callback function
-  flashButton.begin();
-  flashButton.setOnPressCallback(handleButtonPress);
-  Serial.println("Flash button configured to open both doors");
-
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-  Serial.println("Connecting to WiFi...");
- 
-  // Wait for connection
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("");
-  Serial.print("Connected to ");
-  Serial.println(ssid);
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-
-  // Set up mDNS responder:
-  // - first argument is the domain name, in this case, 'gandalf'
-  // - second argument is the IP address to advertise
+  // Set up mDNS responder
   if (!MDNS.begin("gandalf")) {
     Serial.println("Error setting up MDNS responder!");
   } else {
@@ -104,13 +94,8 @@ void setup(void) {
   }
 
   // ArduinoOTA setup
-  // Port defaults to 3232
   ArduinoOTA.setPort(3232);
-  
-  // Hostname defaults to esp3232-[MAC]
   ArduinoOTA.setHostname("gandalf");
-  
-  // Set authentication password
   ArduinoOTA.setPassword(OTA_PASSWORD);
   
   // OTA callbacks
@@ -121,7 +106,6 @@ void setup(void) {
     else // U_SPIFFS
       type = "filesystem";
     
-    // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
     Serial.println("Start updating " + type);
   });
   
@@ -145,6 +129,7 @@ void setup(void) {
   ArduinoOTA.begin();
   Serial.println("OTA service started");
  
+  // Set up web server endpoints
   server.on("/", []() {
     server.send(200, "text/plain", "Hi! This is Gandalf Door Controller.");
   });
@@ -184,13 +169,93 @@ void setup(void) {
 
   server.begin();
   Serial.println("HTTP server started");
-  Serial.println("Gandalf is ready!");
+  
+  otaInitialized = true;
+}
+
+// Start WiFi connection process
+void startWiFiConnection() {
+  if (wifiState == WIFI_CONNECTING) return;
+  
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  Serial.println("Connecting to WiFi...");
+  
+  wifiState = WIFI_CONNECTING;
+  wifiConnectionStartTime = millis();
+  wifiConnectionAttempt++;
+}
+
+// Check WiFi connection status
+void checkWiFiConnection() {
+  if (wifiState == WIFI_CONNECTING) {
+    // Check if connected
+    if (WiFi.status() == WL_CONNECTED) {
+      Serial.println();
+      Serial.print("Connected to ");
+      Serial.println(ssid);
+      Serial.print("IP address: ");
+      Serial.println(WiFi.localIP());
+      
+      wifiState = WIFI_CONNECTED;
+      setupOTAAndServer();
+    } 
+    // Check for timeout
+    else if (millis() - wifiConnectionStartTime > WIFI_CONNECTION_TIMEOUT) {
+      Serial.println();
+      Serial.println("WiFi connection timeout. Will retry later.");
+      
+      wifiState = WIFI_FAILED;
+    }
+    // Still connecting
+    else {
+      if (millis() % 1000 < 10) { // Print a dot roughly every second
+        Serial.print(".");
+      }
+    }
+  }
+  // If connection failed and it's time to retry
+  else if (wifiState == WIFI_FAILED && 
+          (millis() - wifiConnectionStartTime) > WIFI_RETRY_INTERVAL) {
+    Serial.println("Retrying WiFi connection...");
+    startWiFiConnection();
+  }
+  // If we're connected but lost connection
+  else if (wifiState == WIFI_CONNECTED && WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi connection lost. Reconnecting...");
+    wifiState = WIFI_DISCONNECTED;
+    startWiFiConnection();
+  }
+}
+
+void setup(void) {
+  Serial.begin(115200);
+  Serial.println("Gandalf Door Controller starting...");
+
+  // Initialize the servo controller
+  servoCtrl.begin();
+  
+  // Initialize the button handler and set the callback function
+  flashButton.begin();
+  flashButton.setOnPressCallback(handleButtonPress);
+  Serial.println("Flash button configured to open both doors");
+
+  // Start WiFi connection process asynchronously
+  startWiFiConnection();
+  
+  Serial.println("Gandalf is ready! (Button functions available even without WiFi)");
 }
  
 void loop(void) {
-  ArduinoOTA.handle();
-  server.handleClient();
+  // Check WiFi connection status
+  checkWiFiConnection();
   
-  // Check for button press
+  // Handle OTA if WiFi is connected
+  if (wifiState == WIFI_CONNECTED) {
+    ArduinoOTA.handle();
+    server.handleClient();
+  }
+  
+  // Always check for button press, regardless of WiFi state
   flashButton.handle();
 }

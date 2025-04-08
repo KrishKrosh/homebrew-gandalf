@@ -12,6 +12,7 @@ I call it Gandalf.
 - Secure credential management with secrets.h
 - Modular code organization with separate controller classes
 - Physical button support - press the ESP32 flash button to open both doors
+- Non-blocking WiFi connection - button functions work even without WiFi
 
 ## Project Structure
 
@@ -31,6 +32,17 @@ In addition to the API endpoints, you can also control the door using physical i
   - This is the button labeled "BOOT" or "FLASH" on most ESP32 development boards
   - The button is connected to GPIO0
   - Includes software debouncing to prevent accidental double-triggering
+  - Works even when WiFi is disconnected or connecting
+
+## Resilient Design
+
+The controller is designed to be resilient to network issues:
+
+- **Non-blocking WiFi**: WiFi connection happens in the background
+- **Always functional**: Physical button control works even when WiFi is down
+- **Auto-reconnection**: Automatically tries to reconnect if WiFi connection is lost
+- **Timeout handling**: Won't get stuck in connection attempts
+- **Status indicators**: Serial logs provide connection status information
 
 ## Environment Configuration
 
