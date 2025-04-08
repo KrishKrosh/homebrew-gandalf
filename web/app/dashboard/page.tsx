@@ -130,9 +130,9 @@ export default function DashboardPage() {
         setShowDoorOpenDialog(true);
         
         // Play sound effect
-        // setTimeout(() => {
-        //   playDoorSound();
-        // }, 500);
+        setTimeout(() => {
+          playDoorSound();
+        }, 500);
         
         // Set to opened after animation completes
         setTimeout(() => {
