@@ -32,13 +32,19 @@ export default function DashboardPage() {
 
   // Check authentication on client side (optional secondary check)
   useEffect(() => {
-    if (!getClientAuthStatus()) {
-      router.push('/login');
+    // Only run on client-side
+    if (typeof window !== 'undefined') {
+      if (!getClientAuthStatus()) {
+        router.push('/login');
+      }
     }
   }, [router]);
 
   // Monitor online/offline status
   useEffect(() => {
+    // Only run on client-side
+    if (typeof window === 'undefined') return;
+    
     // Set initial status
     setIsOffline(!navigator.onLine);
 
@@ -65,8 +71,23 @@ export default function DashboardPage() {
 
   // Sound effect for door opening
   const playDoorSound = () => {
-    const audio = new Audio('/sounds/door-open.mp3');
-    audio.play().catch((err: unknown) => console.error('Failed to play sound:', err));
+    try {
+      const audio = new Audio('/sounds/door-open.mp3');
+      
+      // Add error handling for audio loading
+      audio.addEventListener('error', (err) => {
+        console.warn('Could not load door sound:', err);
+      });
+      
+      // Only try to play if the browser supports Audio
+      if (typeof Audio !== 'undefined') {
+        audio.play().catch((err: unknown) => {
+          console.warn('Failed to play sound:', err);
+        });
+      }
+    } catch (err) {
+      console.warn('Audio playback not supported:', err);
+    }
   };
 
   const handleErrorByType = (error: ErrorWithType) => {
@@ -165,6 +186,14 @@ export default function DashboardPage() {
 
   return (
     <>
+      {/* Fallback content that will always be visible, even if JS fails */}
+      <noscript>
+        <div style={{ padding: '20px', textAlign: 'center' }}>
+          <h1>Homebrew Gandalf Door Control</h1>
+          <p>This application requires JavaScript to be enabled. Please enable JavaScript in your browser settings.</p>
+        </div>
+      </noscript>
+      
       <div className="min-h-screen flex flex-col bg-background">
         {/* Header */}
         <header className="border-b border-border py-4 px-6 bg-card">
