@@ -4,11 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix",
-    "prebuild": "npm run lint:fix",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.1",

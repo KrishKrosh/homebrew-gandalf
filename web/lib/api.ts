@@ -2,9 +2,12 @@
  * API utility functions to communicate with the door controller
  */
 
+console.log('API_URL', process.env.NEXT_PUBLIC_API_URL);
+console.log('API_KEY', process.env.NEXT_PUBLIC_API_KEY);
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.2.40';
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || 'G4nd0lf-Th3-W1z4rd-1234';
-const MAX_RETRIES = 2;  // Maximum number of retry attempts
+const MAX_RETRIES = 0;  // Maximum number of retry attempts
 const RETRY_DELAY = 1000;  // Delay between retries in ms
 
 // Possible API error types for better error handling
@@ -40,7 +43,7 @@ async function apiRequest(
   const timeoutId = setTimeout(() => controller.abort(), timeout);
   
   try {
-    const url = `${API_URL}${endpoint}?key=${API_KEY}`;
+    const url = `http://192.168.2.40${endpoint}?key=${API_KEY}`;
     
     const response = await fetch(url, {
       method: 'GET',
