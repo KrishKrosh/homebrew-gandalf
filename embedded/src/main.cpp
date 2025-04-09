@@ -69,9 +69,24 @@ bool isValidApiKey() {
   return false;
 }
 
+// Add CORS headers to responses
+void addCorsHeaders() {
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.sendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  server.sendHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  server.sendHeader("Access-Control-Max-Age", "86400"); // 24 hours cache for preflight requests
+}
+
 // Handle unauthorized access
 void handleUnauthorized() {
+  addCorsHeaders(); // Add CORS headers even for unauthorized responses
   server.send(401, "text/plain", "Unauthorized: Invalid or missing API key");
+}
+
+// Handle preflight OPTIONS requests
+void handleOptions() {
+  addCorsHeaders();
+  server.send(200, "text/plain", "");
 }
 
 // Function to handle button press - will open both doors
@@ -131,8 +146,14 @@ void setupOTAAndServer() {
  
   // Set up web server endpoints
   server.on("/", []() {
+    addCorsHeaders(); // Add CORS headers
     server.send(200, "text/plain", "Hi! This is Gandalf Door Controller.");
   });
+
+  // Handle OPTIONS method for preflight requests
+  server.on("/openFirstDoor", HTTP_OPTIONS, handleOptions);
+  server.on("/openSecondDoor", HTTP_OPTIONS, handleOptions);
+  server.on("/openBothDoors", HTTP_OPTIONS, handleOptions);
 
   server.on("/openFirstDoor", []() {
     // Check if the request has a valid API key
@@ -141,6 +162,7 @@ void setupOTAAndServer() {
       return;
     }
     
+    addCorsHeaders(); // Add CORS headers
     server.send(200, "text/plain", "Wait ~10 seconds for the first door to open");
     servoCtrl.openFirstDoor();
   });
@@ -152,6 +174,7 @@ void setupOTAAndServer() {
       return;
     }
     
+    addCorsHeaders(); // Add CORS headers
     server.send(200, "text/plain", "Wait ~10 seconds for the second door to open");
     servoCtrl.openSecondDoor();
   });
@@ -163,6 +186,7 @@ void setupOTAAndServer() {
       return;
     }
     
+    addCorsHeaders(); // Add CORS headers
     server.send(200, "text/plain", "Wait ~20 seconds for both doors to open");
     servoCtrl.openBothDoors();
   });

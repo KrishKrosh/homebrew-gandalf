@@ -5,7 +5,7 @@
 console.log('API_URL', process.env.NEXT_PUBLIC_API_URL);
 console.log('API_KEY', process.env.NEXT_PUBLIC_API_KEY);
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.2.40';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '192.168.2.40';
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || 'G4nd0lf-Th3-W1z4rd-1234';
 const MAX_RETRIES = 0;  // Maximum number of retry attempts
 const RETRY_DELAY = 1000;  // Delay between retries in ms
