@@ -2,7 +2,11 @@
 const nextConfig = {
   /* config options here */
   reactStrictMode: true,
-  swcMinify: true,
+  crossOrigin: 'anonymous',
+  images: {
+    domains: ['localhost', 'vercel.app'],
+  },
+  output: 'standalone',
 };
 
 module.exports = nextConfig;

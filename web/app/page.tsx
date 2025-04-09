@@ -1,19 +1,33 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getClientAuthStatus } from '@/lib/auth';
 
 export default function HomePage() {
   const router = useRouter();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    // Check if user is authenticated and redirect accordingly
-    if (getClientAuthStatus()) {
-      router.push('/dashboard');
-    } else {
-      router.push('/login');
-    }
+    // Add a small delay to ensure cookies are properly read
+    const timer = setTimeout(() => {
+      console.log('Homepage - checking auth status');
+      
+      // Check if user is authenticated and redirect accordingly
+      if (getClientAuthStatus()) {
+        console.log('User authenticated, redirecting to dashboard');
+        setIsRedirecting(true);
+        // Use window.location for a full page navigation
+        window.location.href = '/dashboard';
+      } else {
+        console.log('User not authenticated, redirecting to login');
+        setIsRedirecting(true);
+        // Use window.location for a full page navigation
+        window.location.href = '/login';
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [router]);
 
   // Return a loading state while redirecting

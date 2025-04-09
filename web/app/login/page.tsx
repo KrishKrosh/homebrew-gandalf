@@ -1,19 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert } from '@/components/ui/alert';
-import { setClientAuthCookie } from '@/lib/auth';
+import { setClientAuthCookie, getClientAuthStatus } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
+
+  // Check for existing authentication on load
+  useEffect(() => {
+    // If already authenticated, redirect to dashboard
+    if (getClientAuthStatus()) {
+      console.log('User already authenticated, redirecting to dashboard');
+      router.push('/dashboard');
+    }
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +36,7 @@ export default function LoginPage() {
     setError('');
 
     try {
+      console.log('Attempting login...');
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -35,20 +46,32 @@ export default function LoginPage() {
       });
 
       const data = await response.json();
+      console.log('Login response status:', response.status);
 
       if (response.ok) {
+        console.log('Authentication successful, setting cookie and redirecting');
         // Store the token in a cookie
         setClientAuthCookie(data.token);
-        // Redirect to dashboard
-        router.push('/dashboard');
+        
+        // Set redirecting state to show feedback
+        setRedirecting(true);
+        
+        // Give the cookie a moment to be set before redirecting
+        setTimeout(() => {
+          // Force a hard navigation to dashboard instead of client-side routing
+          window.location.href = '/dashboard';
+        }, 500);
       } else {
+        console.error('Authentication failed:', data.message);
         setError(data.message || 'Authentication failed');
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
       console.error('Login error:', err);
+      setError('An error occurred. Please try again.');
     } finally {
-      setLoading(false);
+      if (!redirecting) {
+        setLoading(false);
+      }
     }
   };
 
@@ -90,6 +113,7 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full"
                     autoComplete="current-password"
+                    disabled={loading || redirecting}
                   />
                 </div>
                 
@@ -102,12 +126,17 @@ export default function LoginPage() {
                 <Button 
                   type="submit" 
                   className="w-full bg-primary hover:bg-primary/90" 
-                  disabled={loading}
+                  disabled={loading || redirecting}
                 >
                   {loading ? (
                     <span className="flex items-center justify-center">
                       <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" /> 
                       Authenticating...
+                    </span>
+                  ) : redirecting ? (
+                    <span className="flex items-center justify-center">
+                      <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" /> 
+                      Redirecting to dashboard...
                     </span>
                   ) : (
                     'Authenticate'
