@@ -43,7 +43,7 @@ async function apiRequest(
   const timeoutId = setTimeout(() => controller.abort(), timeout);
   
   try {
-    const url = `http://192.168.2.40${endpoint}?key=${API_KEY}`;
+    const url = `http://${API_URL}${endpoint}?key=${API_KEY}`;
     
     const response = await fetch(url, {
       method: 'GET',
